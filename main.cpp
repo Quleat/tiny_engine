@@ -1,8 +1,10 @@
 #include <iostream>
-#include <glad/gl.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <fstream> //For loading shaders
 
 void framebuffer_size_callback(GLFWwindow* , int width, int height);
+void processInput(GLFWwindow* window);
 
 int main(int argc, char *argv[]){
 	//---------------CREATING A WINDOW-----------------------
@@ -19,7 +21,7 @@ int main(int argc, char *argv[]){
 	glfwMakeContextCurrent(window);
 	std::cout << "Hello world!\n";
 
-	////------------GLAD------------------------------------
+	//------------GLAD------------------------------------
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
 		std::cerr << "Failed to initialize GLAD!\n";
 		return -1;
@@ -27,6 +29,21 @@ int main(int argc, char *argv[]){
 
 	glViewport(0,0,800,600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	//-----------DRAWING----------------------------------
+	
+	float verticies[] = {
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, -0.0f,
+		0.0f, 0.5f, 0.0f
+	};
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
+
+  //Reading the vertex shader
+  fstream 
 
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);

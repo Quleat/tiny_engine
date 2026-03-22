@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/home/quleat/OpenGL/tiny_engine/build",
+  "command": "/usr/bin/cc  -I/home/quleat/OpenGL/tiny_engine/third-party/glad/include  -o CMakeFiles/glad.dir/third-party/glad/src/glad.c.o -c /home/quleat/OpenGL/tiny_engine/third-party/glad/src/glad.c",
+  "file": "/home/quleat/OpenGL/tiny_engine/third-party/glad/src/glad.c",
+  "output": "CMakeFiles/glad.dir/third-party/glad/src/glad.c.o"
+},
+{
+  "directory": "/home/quleat/OpenGL/tiny_engine/build",
+  "command": "/usr/bin/c++  -I/home/quleat/OpenGL/tiny_engine/third-party/glad/include -std=gnu++20 -o CMakeFiles/tiny_engine.dir/main.cpp.o -c /home/quleat/OpenGL/tiny_engine/main.cpp",
+  "file": "/home/quleat/OpenGL/tiny_engine/main.cpp",
+  "output": "CMakeFiles/tiny_engine.dir/main.cpp.o"
+}
+]
