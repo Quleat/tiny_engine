@@ -12,7 +12,7 @@ find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 
 
 #--------GLFW (windows)------------------------
-if(EXISTS third-party/glfw/CMakeLists.txt)
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third-party/glfw/CMakeLists.txt)
 	message("Using glfw from the third-party folder")
 	add_subdirectory(third-party/glfw)
 
@@ -24,16 +24,20 @@ else()
 	find_package(glfw3 REQUIRED)
 endif()
 
-#--------GLAD (binding the opengl functions----
+#--------GLAD (binding the opengl functions------------
 
 add_library(glad STATIC third-party/glad/src/glad.c)
 target_include_directories(glad PUBLIC third-party/glad/include)
 target_link_libraries(glad PRIVATE OpenGL::OpenGL)
 
-#---------LINKING LIBRARIES---------------------
+#---------LINKING LIBRARIES-----------------------------
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	glfw
 	glad
 	OpenGL::OpenGL
 )
+
+#---------SETTING FLAGS DEPENDING ON THE BUILD TYPE------
+
+target_compile_options(tiny_engine PRIVATE -O0 -g -pg -Wall -Wpedantic -Wextra -Wshadow -Wdouble-promotion)

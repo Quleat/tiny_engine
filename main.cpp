@@ -1,12 +1,15 @@
-#include <iostream>
+#include <iostream> //Debug printing and e.t.c.
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <fstream> //For loading shaders
+
+#include <fstream> //For loading shaders from the files
+#include <iterator>
 
 void framebuffer_size_callback(GLFWwindow* , int width, int height);
 void processInput(GLFWwindow* window);
 
-int main(int argc, char *argv[]){
+int main(int, char *[]){
 	//---------------CREATING A WINDOW-----------------------
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -19,7 +22,6 @@ int main(int argc, char *argv[]){
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-	std::cout << "Hello world!\n";
 
 	//------------GLAD------------------------------------
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
@@ -42,8 +44,34 @@ int main(int argc, char *argv[]){
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
 
-  //Reading the vertex shader
-  fstream 
+  	//Reading the vertex shader
+	std::fstream file_vertex_shader("vertex_shader.glsl");
+	if(!file_vertex_shader){
+		std::cerr << "Couldn't open the vertex shader file!\n";
+		return 1;
+	}
+	std::istreambuf_iterator<char> begin(file_vertex_shader);
+	std::istreambuf_iterator<char> end;
+	const std::string vertex_shader_source(begin, end);
+
+	unsigned int vertex_shader;
+	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+	const char* const vsh_ptr = vertex_shader_source.c_str(); //glShader Needs char**
+	glShaderSource(vertex_shader, 1, &vsh_ptr, NULL);
+	glCompileShader(vertex_shader);
+
+	int success; 
+	char infoLog[256];
+	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
+
+	if(!success){
+		glGetShaderInfoLog(vertex_shader, 512, NULL, infoLog);
+		std::cerr << "Vertex shader compilation error: " << '\n'
+			<< infoLog << '\n';
+	}
+	else
+		std::cout << "Vertex shader: OK\n";
+		
 
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);
