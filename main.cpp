@@ -25,7 +25,7 @@ int main(int, char *[]){
 
 	//------------GLAD------------------------------------
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
-		std::cerr << "Failed to initialize GLAD!\n";
+		std::cerr << "Failed to initialize GLAD!!\n";
 		return -1;
 	}
 
