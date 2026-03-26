@@ -9,6 +9,21 @@
 void framebuffer_size_callback(GLFWwindow* , int width, int height);
 void processInput(GLFWwindow* window);
 
+std::string read_shader(const std::string &path){
+	std::ifstream stream(path);
+	if(!stream){
+		std::cerr << "Error opening file: " << path << '\n';
+		return "";
+	}
+	std::istreambuf_iterator<char> beg_fs(stream);
+	std::istreambuf_iterator<char> end_fs;
+
+	const std::string result(
+			beg_fs,
+			end_fs);
+	return result;
+}
+
 int main(int, char *[]){
 	//---------------CREATING A WINDOW-----------------------
 	glfwInit();
@@ -85,6 +100,31 @@ int main(int, char *[]){
 		return -5;
 	}
 
+	//--------------FRAGMENT SHADER 2--------
+	const std::string fr2_sh_str(read_shader("fragment_shader2.glsl"));
+	const char* const fr2_str_ptr = fr2_sh_str.c_str();
+	const unsigned int fr2_sh = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fr2_sh, 1, &fr2_str_ptr, NULL);
+	glCompileShader(fr2_sh);
+	glGetShaderiv(fr2_sh, GL_COMPILE_STATUS, &success);
+
+	if(!success){
+	std::cerr << "ERROR COMPILING FRAGMENT SHADER!!!\n";
+	return -5;
+	}
+	//PROGRAM 2
+	
+	const unsigned int shaderProgram2 =
+		glCreateProgram();
+	glAttachShader(shaderProgram2, vertex_shader);
+	glAttachShader(shaderProgram2, fr2_sh);
+	glLinkProgram(shaderProgram2);
+	glGetProgramiv(shaderProgram2, GL_LINK_STATUS, &success);
+	if(!success){
+	std::cerr << "Program LINK ERROR!\n";
+	return -6;
+	}
+
 
 
 	const unsigned int shaderProgram =
@@ -147,7 +187,7 @@ int main(int, char *[]){
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);
 
-    glPolygonMode(GL_FRONT_AND_BACK, /*GL_FILL*/GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, /*GL_FILL*/GL_FILL);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -158,6 +198,7 @@ int main(int, char *[]){
 	  //glDrawArrays(GL_TRIANGLES, 0, 3);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
+    glUseProgram(shaderProgram2);
     glBindVertexArray(VAO[1]);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
