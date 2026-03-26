@@ -5,6 +5,7 @@
 
 #include <fstream> //For loading shaders from the files
 #include <iterator>
+#include <cmath>
 
 void framebuffer_size_callback(GLFWwindow* , int width, int height);
 void processInput(GLFWwindow* window);
@@ -100,33 +101,6 @@ int main(int, char *[]){
 		return -5;
 	}
 
-	//--------------FRAGMENT SHADER 2--------
-	const std::string fr2_sh_str(read_shader("fragment_shader2.glsl"));
-	const char* const fr2_str_ptr = fr2_sh_str.c_str();
-	const unsigned int fr2_sh = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fr2_sh, 1, &fr2_str_ptr, NULL);
-	glCompileShader(fr2_sh);
-	glGetShaderiv(fr2_sh, GL_COMPILE_STATUS, &success);
-
-	if(!success){
-	std::cerr << "ERROR COMPILING FRAGMENT SHADER!!!\n";
-	return -5;
-	}
-	//PROGRAM 2
-	
-	const unsigned int shaderProgram2 =
-		glCreateProgram();
-	glAttachShader(shaderProgram2, vertex_shader);
-	glAttachShader(shaderProgram2, fr2_sh);
-	glLinkProgram(shaderProgram2);
-	glGetProgramiv(shaderProgram2, GL_LINK_STATUS, &success);
-	if(!success){
-	std::cerr << "Program LINK ERROR!\n";
-	return -6;
-	}
-
-
-
 	const unsigned int shaderProgram =
 		glCreateProgram();
 	glAttachShader(shaderProgram, vertex_shader);
@@ -145,62 +119,53 @@ int main(int, char *[]){
 	//-----------DRAWING----------------------------------
 	
 	float verticies[] = {
-		-0.75f, -0.5f, 0.0f,
-    -0.25f, -0.5f, 0.0f,
-    -0.5f, 0.25f, 0.0f,
-
-    0.25f, -0.5f, 0.0f,
-    0.75f, -0.5f, 0.0f,
-    0.5f, 0.25f, 0.0f
+    0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // bottom right
+   -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // bottom left
+    0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // top 
 	};
-  /*unsigned int indicies[] = {
-    0, 1, 3,
-    1, 2, 3
-  };*/
+  unsigned int indicies[] = {
+    0, 1, 2
+  };
 
   //VAO1
-	unsigned int VBO[2], VAO[2];
-	glGenVertexArrays(2, VAO);
-	glBindVertexArray(VAO[0]);
+	unsigned int VBO, VAO, EBO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+  glGenBuffers(1, &EBO);
 
-	glGenBuffers(2, VBO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies) / 2, verticies, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW); //Coordinates
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
 	glEnableVertexAttribArray(0);
-  glBindVertexArray(0);
 
-  //VAO2
-  glBindVertexArray(VAO[1]);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(verticies) / 2, &verticies[9], GL_STATIC_DRAW); //why not verticies + (9 * sizeof(float))
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
-  glBindVertexArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
 
-  /*glGenBuffers(1, &EBO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);*/
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
 
+  glBindVertexArray(0);
+
+
+	glUseProgram(shaderProgram);
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);
-
-    glPolygonMode(GL_FRONT_AND_BACK, /*GL_FILL*/GL_FILL);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-	  glUseProgram(shaderProgram);
-	  glBindVertexArray(VAO[0]);
-    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	  //glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    //const float timeValue = glfwGetTime();
+    //const float greenValue = ((std::sin(timeValue)) / 2.0f) + 0.5f;
 
-    glUseProgram(shaderProgram2);
-    glBindVertexArray(VAO[1]);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    //const int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+    //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	  glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+	  //glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
