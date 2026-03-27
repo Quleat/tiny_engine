@@ -4,7 +4,10 @@ project(tiny_engine)
 set(CMAKE_CXX_STANDARD 20)
 
 #-------EXECUTABLE----------------------------
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} 
+	shader.cpp
+	main.cpp)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 #--------OpenGL-------------------------------
 set(OPENGL_gl_LIBRARY "/usr/lib64/libOpenGL.so" CACHE FILEPATH "Path to OpenGL Library")

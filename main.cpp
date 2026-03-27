@@ -7,23 +7,11 @@
 #include <iterator>
 #include <cmath>
 
+#include <shader.h>
+
 void framebuffer_size_callback(GLFWwindow* , int width, int height);
 void processInput(GLFWwindow* window);
 
-std::string read_shader(const std::string &path){
-	std::ifstream stream(path);
-	if(!stream){
-		std::cerr << "Error opening file: " << path << '\n';
-		return "";
-	}
-	std::istreambuf_iterator<char> beg_fs(stream);
-	std::istreambuf_iterator<char> end_fs;
-
-	const std::string result(
-			beg_fs,
-			end_fs);
-	return result;
-}
 
 int main(int, char *[]){
 	//---------------CREATING A WINDOW-----------------------
@@ -50,72 +38,8 @@ int main(int, char *[]){
 
 
 
-	//--------------VERTEX SHADER---------------
-  	//Reading the vertex shader
-	std::fstream file_vertex_shader("vertex_shader.glsl");
-	if(!file_vertex_shader){
-		std::cerr << "Couldn't open the vertex shader file!\n";
-		return 1;
-	}
-	std::istreambuf_iterator<char> begin(file_vertex_shader);
-	std::istreambuf_iterator<char> end;
-	const std::string vertex_shader_source(begin, end);
-
-	unsigned int vertex_shader;
-	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	const char* const vsh_ptr = vertex_shader_source.c_str(); //glShader Needs char**
-	glShaderSource(vertex_shader, 1, &vsh_ptr, NULL);
-	glCompileShader(vertex_shader);
-
-	int success; 
-	char infoLog[256];
-	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
-
-	if(!success){
-		glGetShaderInfoLog(vertex_shader, 512, NULL, infoLog);
-		std::cerr << "Vertex shader compilation error: " << '\n'
-			<< infoLog << '\n';
-	}
-	else
-		std::cout << "Vertex shader: OK\n";
-
-
-	//--------------FRAGMENT SHADER---------------
-	const unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	
-	std::ifstream file_fs("fragment_shader.glsl");
-	std::istreambuf_iterator<char> beg_fs(file_fs);
-	std::istreambuf_iterator<char> end_fs;
-	const std::string fragment_shader_str(
-			beg_fs, end_fs);
-
-	const char* const fs_str_ptr = fragment_shader_str.c_str();
-	glShaderSource(fragmentShader, 1, &fs_str_ptr, NULL);
-	glCompileShader(fragmentShader);
-	
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-
-	if(!success){
-		std::cout << "FRAGMENT SHADER ERROR!!!\n";
-		std::cout << fragment_shader_str << '\n';
-		return -5;
-	}
-
-	const unsigned int shaderProgram =
-		glCreateProgram();
-	glAttachShader(shaderProgram, vertex_shader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if(!success) {
-		std::cerr << "PROGRAM LINK ERROR!\n";
-		return -6;
-	}
-	//glUseProgram(shaderProgram);
-	glDeleteShader(vertex_shader);
-	glDeleteShader(fragmentShader);
-
+	//-----------SHADERS----------------------------------
+	Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 	//-----------DRAWING----------------------------------
 	
 	float verticies[] = {
@@ -147,8 +71,7 @@ int main(int, char *[]){
 
   glBindVertexArray(0);
 
-
-	glUseProgram(shaderProgram);
+	shader.use();
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);
 
