@@ -36,9 +36,9 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 		return;
 	}
 
-	glShaderSource(vertex, 1, &vc_ptr, NULL);
-	glCompileShader(vertex);
-	glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+	glShaderSource(fragment, 1, &fc_ptr, NULL);
+	glCompileShader(fragment);
+	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
 	if(!success){
 		std::cerr << "Vertex shader compilation error!\n";
 		return;
@@ -52,6 +52,8 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 	glGetProgramiv(ID, GL_LINK_STATUS, &success);
 	if(!success){
 		std::cerr << "Program linking error!\n";
+		glGetProgramInfoLog(ID, 512, NULL, infoLog);
+		std::cerr << "Error message: " << infoLog << "\n";
 		return;
 	}
 	glDeleteShader(vertex);
@@ -64,13 +66,25 @@ void Shader::use(){
 
 void Shader::setBool(const std::string &name, const bool &value) const
 {
-	glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+	const int location = glGetUniformLocation(ID, name.c_str());
+	if (location == -1){
+		std::cerr << "[ERROR]: Couldn't locate the uniform!\n";
+	}
+	glUniform1i(location, (int)value);
 }
 void Shader::setInt(const std::string &name, const int &value) const
 {
-	glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+	const int location = glGetUniformLocation(ID, name.c_str());
+	if (location == -1){
+		std::cerr << "[ERROR]: Couldn't locate the uniform!\n";
+	}
+	glUniform1i(location, value);
 }
 void Shader::setFloat(const std::string &name, const float &value) const
 {
-	glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+	const int location = glGetUniformLocation(ID, name.c_str());
+	if (location == -1){
+		std::cerr << "[ERROR]: Couldn't locate the uniform \'" << name << "\' !\n";
+	}
+	glUniform1f(location, value);
 }

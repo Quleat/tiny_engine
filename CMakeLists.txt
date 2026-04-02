@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 project(tiny_engine)
-
 set(CMAKE_CXX_STANDARD 20)
-
 #-------EXECUTABLE----------------------------
 add_executable(${PROJECT_NAME} 
 	shader.cpp
+	stb_image_impl.cpp
 	main.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -44,3 +43,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 #---------SETTING FLAGS DEPENDING ON THE BUILD TYPE------
 
 target_compile_options(tiny_engine PRIVATE -O0 -g -pg -Wall -Wpedantic -Wextra -Wshadow -Wdouble-promotion)
+set_source_files_properties(stb_image_impl.cpp PROPERTIES COMPILE_OPTIONS "-w")
