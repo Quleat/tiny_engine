@@ -13,7 +13,7 @@ set(OPENGL_gl_LIBRARY "/usr/lib64/libOpenGL.so" CACHE FILEPATH "Path to OpenGL L
 find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 
 
-#--------GLFW (windows)------------------------
+#--------GLFW (windows)---------------------------------
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third-party/glfw/CMakeLists.txt)
 	message("Using glfw from the third-party folder")
 	add_subdirectory(third-party/glfw)
@@ -26,11 +26,15 @@ else()
 	find_package(glfw3 REQUIRED)
 endif()
 
-#--------GLAD (binding the opengl functions------------
+#--------GLAD (binding the opengl functions)------------
 
 add_library(glad STATIC third-party/glad/src/glad.c)
 target_include_directories(glad PUBLIC third-party/glad/include)
 target_link_libraries(glad PRIVATE OpenGL::OpenGL)
+
+#--------GLM--------------------------------------------
+
+target_include_directories(${PROJECT_NAME} PRIVATE third-party/glm)
 
 #---------LINKING LIBRARIES-----------------------------
 

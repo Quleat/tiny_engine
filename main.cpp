@@ -8,6 +8,11 @@
 #include <cmath>
 
 #include <shader.h>
+#include <stb_image.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 void framebuffer_size_callback(GLFWwindow* , int width, int height);
 void processInput(GLFWwindow* window);
@@ -41,14 +46,15 @@ int main(int argc, char *argv[]){
 	//-----------SHADERS----------------------------------
 	Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
 	//-----------DRAWING----------------------------------
-
-	float verticies[] = {
-		0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // bottom right
-		-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // bottom left
-		0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // top 
+	float vertices[] = {
+	    // positions          // colors           // texture coords
+	     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+	     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+	    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+	    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
 	};
 	unsigned int indicies[] = {
-		0, 1, 2
+		0, 1, 2, 3, 0, 2
 	};
 
 	//VAO1
@@ -57,65 +63,97 @@ int main(int argc, char *argv[]){
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
+	std::cerr << sizeof(float) << '\n';
+
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW); //Coordinates
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Coordinates
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float))); //COLOR
 	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
-
 	shader.use();
 
-	float offset = 0.0f;
-	if(argc > 1)
-		offset = std::stof(argv[1]);
-	std::cout << "Offset: " << offset << "\n";
 	//----------LOADING TEXTURES----------
-	const unsigned int texture = 
-		glGenTextures(1, &texture);
+	unsigned int texture; 
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXUTRE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	int width, height, nrChannels;
+
+	//Image 1
+	stbi_set_flip_vertically_on_load(true);
 	unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
 	if(!data){
 		std::cerr << "Failed to load the texture!\n";
-		return;
+		return -10;
 	}
-
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	stbi_image_free(data);
 
-	//return 1;
+	//Image 2
+	unsigned int texture2;
+	glGenTextures(1, &texture2);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	unsigned char *data2 = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
+	if(!data){
+		std::cerr << "Failed to load the texture!\n";
+		return -10;
+	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	stbi_image_free(data2);
+
+	glUniform1i(glGetUniformLocation(shader.ID, "texture1"), 0);
+	glUniform1i(glGetUniformLocation(shader.ID, "texture2"), 1);
+
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		//const float timeValue = glfwGetTime();
-		//const float greenValue = ((std::sin(timeValue)) / 2.0f) + 0.5f;
-
-		//const int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-		//glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 		glBindVertexArray(VAO);
-		shader.setFloat("offset", offset);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		//First box
+		glm::mat4 tn = glm::mat4(1.0f);
+		tn = glm::translate(tn, glm::vec3(0.5f, -0.5f, 0.0f));
+		tn = glm::rotate(tn, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+		tn = glm::scale(tn, glm::vec3(0.5f, 0.5f, 0.5f));
+		const int transform_loc = glGetUniformLocation(shader.ID, "transform");
+		if(transform_loc == -1){
+			std::cerr << "Matrix not found!\n";
+		}
+		glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm::value_ptr(tn));
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		//Second box
+		glm::mat4 new_tn = glm::mat4(1.0f);
+		new_tn = glm::translate(new_tn, glm::vec3(-0.5f, 0.5f, 0.0f));
+		const float coef = (std::sin((float)glfwGetTime()) + 1) / 2;
+		new_tn = glm::scale(new_tn, glm::vec3(coef, coef, 0.0f));
+		glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm::value_ptr(new_tn));
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
