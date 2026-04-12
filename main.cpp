@@ -17,6 +17,11 @@
 void framebuffer_size_callback(GLFWwindow* , int width, int height);
 void processInput(GLFWwindow* window);
 
+glm::vec3 cameraPos 	= glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront 	= glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp 	= glm::vec3(0.0f, 1.0f, 0.0f);
+
+float currentFrame = 0;
 
 int main(int argc, char *argv[]){
 	//---------------CREATING A WINDOW-----------------------
@@ -172,6 +177,7 @@ int main(int argc, char *argv[]){
 
 	glBindVertexArray(VAO);
 	glEnable(GL_DEPTH_TEST);
+
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);
 
@@ -184,9 +190,7 @@ int main(int argc, char *argv[]){
 		//View matrix
 		glm::mat4 view = glm::mat4(1.0f);
 		const float radius = 10.0f;
-		const float camX = static_cast<float>(std::sin(glfwGetTime()) * radius);
-		const float camY = static_cast<float>(std::cos(glfwGetTime()) * radius);
-		view = glm::lookAt(glm::vec3(camX, 0, camY), glm::vec3(0,0,0), glm::vec3(0, 1, 0));
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		const int view_loc = glGetUniformLocation(shader.ID, "view");
 		glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
@@ -216,4 +220,14 @@ void framebuffer_size_callback(GLFWwindow* , int width, int height){
 void processInput(GLFWwindow *window){
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
+	const float speed = 0.05f;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += speed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= speed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= speed * glm::normalize(glm::cross(cameraFront, cameraUp));
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += speed * glm::normalize(glm::cross(cameraFront, cameraUp));
 }
