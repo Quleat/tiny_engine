@@ -16,6 +16,8 @@
 
 void framebuffer_size_callback(GLFWwindow* , int width, int height);
 void processInput(GLFWwindow* window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void recalculate_mouse_rotation();
 
 glm::vec3 cameraPos 	= glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront 	= glm::vec3(0.0f, 0.0f, -1.0f);
@@ -23,18 +25,27 @@ glm::vec3 cameraUp 	= glm::vec3(0.0f, 1.0f, 0.0f);
 
 float currentFrame = 0;
 
+//Default mouse positions
+float lastX = 400, lastY = 300;
+float yaw = -90, pitch = 0;
+
 int main(int argc, char *argv[]){
 	//---------------CREATING A WINDOW-----------------------
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+
+  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+  const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	GLFWwindow* window = glfwCreateWindow(1024, 720, "LearnOpenGL", monitor, NULL);
 	if(window == NULL){
 		std::cerr << "Failed to crate window!\n";
 		glfwTerminate();
 		return -1;
 	}
+  glfwSetWindowPos(window, 0, 0);
 	glfwMakeContextCurrent(window);
 
 	//------------GLAD------------------------------------
@@ -43,7 +54,7 @@ int main(int argc, char *argv[]){
 		return -1;
 	}
 
-	glViewport(0,0,800,600);
+	glViewport(0,0,1024,720);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 
@@ -178,6 +189,14 @@ int main(int argc, char *argv[]){
 	glBindVertexArray(VAO);
 	glEnable(GL_DEPTH_TEST);
 
+
+  // I DISABLED BECAUSE DOESN'T WORK IN WSL :((((
+
+  //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetCursorPosCallback(window, mouse_callback);
+  //if (glfwRawMouseMotionSupported())
+    //glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);
 
@@ -186,10 +205,8 @@ int main(int argc, char *argv[]){
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-
 		//View matrix
 		glm::mat4 view = glm::mat4(1.0f);
-		const float radius = 10.0f;
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		const int view_loc = glGetUniformLocation(shader.ID, "view");
@@ -207,8 +224,6 @@ int main(int argc, char *argv[]){
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-
-
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -221,6 +236,7 @@ void processInput(GLFWwindow *window){
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
+  //Keyboard movement
 	const float speed = 0.05f;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPos += speed * cameraFront;
@@ -230,4 +246,58 @@ void processInput(GLFWwindow *window){
 		cameraPos -= speed * glm::normalize(glm::cross(cameraFront, cameraUp));
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += speed * glm::normalize(glm::cross(cameraFront, cameraUp));
+
+  //Keyboard view rotation
+  if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+    pitch += 0.5f;
+  if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+    pitch -= 0.5f;
+  if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+    yaw += 0.5f;
+  if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+    yaw -= 0.5f;
+  recalculate_mouse_rotation();
+}
+
+bool first_move=true;
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos){
+
+  if(first_move){
+    lastX = xpos; 
+    lastY = ypos;
+    first_move = false;
+    return;
+  }
+
+  std::cerr << "Mouse coord: " << xpos << " : " << ypos << '\n';
+  ypos *= -1;
+  float xoffset = xpos - lastX;
+  float yoffset = ypos - lastY;
+
+  lastX = xpos;
+  lastY = ypos;
+
+  const float sensetivity = 0.1f;
+  xoffset *= sensetivity;
+  yoffset *= sensetivity;
+
+  recalculate_mouse_rotation();
+
+  yaw += xoffset;
+  pitch += yoffset;
+
+}
+
+void recalculate_mouse_rotation(){
+  if(pitch > 89.0f)
+    pitch = 89.0f;
+  if(pitch < -89.0f)
+    pitch = -89.0f;
+
+  glm::vec3 direction;
+  direction.x = std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch));
+  direction.y = std::sin(glm::radians(pitch));
+  direction.z = std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch));
+  cameraFront = glm::normalize(direction);
 }
