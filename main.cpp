@@ -36,7 +36,13 @@ int main(int argc, char *argv[]){
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    GLFWwindow* window = glfwCreateWindow(800, 600, "tiny_engine", NULL, NULL);
+if (window == NULL){
+std::cout << "Failed to create GLFW window" << std::endl;
+glfwTerminate();
+return -1;
+}
+ /* GLFWmonitor* monitor = glfwGetPrimaryMonitor();
   const GLFWvidmode *mode = glfwGetVideoMode(monitor);
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 	GLFWwindow* window = glfwCreateWindow(1024, 720, "LearnOpenGL", monitor, NULL);
@@ -45,7 +51,7 @@ int main(int argc, char *argv[]){
 		glfwTerminate();
 		return -1;
 	}
-  glfwSetWindowPos(window, 0, 0);
+  glfwSetWindowPos(window, 0, 0);*/
 	glfwMakeContextCurrent(window);
 
 	//------------GLAD------------------------------------
@@ -192,7 +198,7 @@ int main(int argc, char *argv[]){
 
   // I DISABLED BECAUSE DOESN'T WORK IN WSL :((((
 
-  //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwSetCursorPosCallback(window, mouse_callback);
   //if (glfwRawMouseMotionSupported())
     //glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
