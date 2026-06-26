@@ -1,13 +1,10 @@
-#include <iostream> //Debug printing and e.t.c.
-
+#include "logger.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <fstream> //For loading shaders from the files
-#include <iterator>
 #include <cmath>
 
-#include <shader.h>
+#include "shader.h"
 #include <stb_image.h>
 
 #include <glm/glm.hpp>
@@ -26,10 +23,10 @@ glm::vec3 cameraUp 	= glm::vec3(0.0f, 1.0f, 0.0f);
 float currentFrame = 0;
 
 //Default mouse positions
-float lastX = 400, lastY = 300;
-float yaw = -90, pitch = 0;
+double lastX = 400, lastY = 300;
+double yaw = -90, pitch = 0;
 
-int main(int argc, char *argv[]){
+int main(){
 	//---------------CREATING A WINDOW-----------------------
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -37,36 +34,24 @@ int main(int argc, char *argv[]){
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(800, 600, "tiny_engine", NULL, NULL);
-if (window == NULL){
-std::cout << "Failed to create GLFW window" << std::endl;
-glfwTerminate();
-return -1;
-}
- /* GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-  const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-	GLFWwindow* window = glfwCreateWindow(1024, 720, "LearnOpenGL", monitor, NULL);
-	if(window == NULL){
-		std::cerr << "Failed to crate window!\n";
-		glfwTerminate();
-		return -1;
-	}
-  glfwSetWindowPos(window, 0, 0);*/
+    if (window == NULL){
+        print_error("Failed to create GLFW window");
+        glfwTerminate();
+        return -1;
+    }
 	glfwMakeContextCurrent(window);
 
 	//------------GLAD------------------------------------
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
-		std::cerr << "Failed to initialize GLAD!!\n";
+		print_error("Failed to initialize GLAD!!");
 		return -1;
 	}
 
 	glViewport(0,0,1024,720);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-
-
 	//-----------SHADERS----------------------------------
-	Shader shader("vertex_shader.glsl", "fragment_shader.glsl");
+	Shader shader("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
 	//-----------DRAWING----------------------------------
 	float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -131,8 +116,6 @@ return -1;
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	std::cerr << sizeof(float) << '\n';
-
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Coordinates
@@ -159,9 +142,9 @@ return -1;
 
 	//Image 1
 	stbi_set_flip_vertically_on_load(true);
-	unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+	unsigned char *data = stbi_load("images/container.jpg", &width, &height, &nrChannels, 0);
 	if(!data){
-		std::cerr << "Failed to load the texture!\n";
+		print_error("Failed to load the texture!");
 		return -10;
 	}
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -176,9 +159,9 @@ return -1;
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-	unsigned char *data2 = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
+	unsigned char *data2 = stbi_load("images/awesomeface.png", &width, &height, &nrChannels, 0);
 	if(!data){
-		std::cerr << "Failed to load the texture!\n";
+		print_error("Failed to load the texture!");
 		return -10;
 	}
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2);
@@ -196,12 +179,8 @@ return -1;
 	glEnable(GL_DEPTH_TEST);
 
 
-  // I DISABLED BECAUSE DOESN'T WORK IN WSL :((((
-
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  glfwSetCursorPosCallback(window, mouse_callback);
-  //if (glfwRawMouseMotionSupported())
-    //glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);
@@ -242,64 +221,58 @@ void processInput(GLFWwindow *window){
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-  //Keyboard movement
-	const float speed = 0.05f;
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += speed * cameraFront;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos -= speed * cameraFront;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos -= speed * glm::normalize(glm::cross(cameraFront, cameraUp));
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos += speed * glm::normalize(glm::cross(cameraFront, cameraUp));
+    //Keyboard movement
+    const float speed = 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += speed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= speed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= speed * glm::normalize(glm::cross(cameraFront, cameraUp));
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += speed * glm::normalize(glm::cross(cameraFront, cameraUp));
 
-  //Keyboard view rotation
-  if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
-    pitch += 0.5f;
-  if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
-    pitch -= 0.5f;
-  if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-    yaw += 0.5f;
-  if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-    yaw -= 0.5f;
-  recalculate_mouse_rotation();
+    //Keyboard view rotation
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+        pitch += 0.5;
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+        pitch -= 0.5;
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+        yaw += 0.5;
+    if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+        yaw -= 0.5;
+    recalculate_mouse_rotation();
 }
 
 bool first_move=true;
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos){
+void mouse_callback(GLFWwindow*, double xpos, double ypos){
+print_debug("mouse callback");
+  ypos *= -1;
 
   if(first_move){
     lastX = xpos; 
     lastY = ypos;
     first_move = false;
-    return;
   }
-
-  std::cerr << "Mouse coord: " << xpos << " : " << ypos << '\n';
-  ypos *= -1;
-  float xoffset = xpos - lastX;
-  float yoffset = ypos - lastY;
+  const double sensetivity = 0.1;
+  const double xoffset = (xpos - lastX) * sensetivity;
+  const double yoffset = (ypos - lastY) * sensetivity;
 
   lastX = xpos;
   lastY = ypos;
 
-  const float sensetivity = 0.1f;
-  xoffset *= sensetivity;
-  yoffset *= sensetivity;
-
-  recalculate_mouse_rotation();
-
   yaw += xoffset;
   pitch += yoffset;
 
+  recalculate_mouse_rotation();
 }
 
 void recalculate_mouse_rotation(){
-  if(pitch > 89.0f)
-    pitch = 89.0f;
-  if(pitch < -89.0f)
-    pitch = -89.0f;
+  if(pitch > 89.0)
+    pitch = 89.0;
+  if(pitch < -89.0)
+    pitch = -89.0;
 
   glm::vec3 direction;
   direction.x = std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch));

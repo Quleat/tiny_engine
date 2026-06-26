@@ -2,16 +2,16 @@ cmake_minimum_required(VERSION 3.15)
 project(tiny_engine)
 set(CMAKE_CXX_STANDARD 20)
 #-------EXECUTABLE----------------------------
+set(SOURCE_FILES "src/")
+set(INCLUDE_FILES "include/")
 add_executable(${PROJECT_NAME} 
-	shader.cpp
-	stb_image_impl.cpp
-	main.cpp)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    ${SOURCE_FILES}shader.cpp
+	${SOURCE_FILES}main.cpp)
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_FILES})
 
 #--------OpenGL-------------------------------
 set(OPENGL_gl_LIBRARY "/usr/lib64/libOpenGL.so" CACHE FILEPATH "Path to OpenGL Library")
 find_package(OpenGL REQUIRED COMPONENTS OpenGL)
-
 
 #--------GLFW (windows)---------------------------------
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third-party/glfw/CMakeLists.txt)
@@ -32,9 +32,16 @@ add_library(glad STATIC third-party/glad/src/glad.c)
 target_include_directories(glad PUBLIC third-party/glad/include)
 target_link_libraries(glad PRIVATE OpenGL::OpenGL)
 
-#--------GLM--------------------------------------------
+#--------GLM (math functions)---------------------------
 
 target_include_directories(${PROJECT_NAME} PRIVATE third-party/glm)
+
+#--------STB_IMAGE (loading images)--------------------
+
+target_include_directories(${PROJECT_NAME} PRIVATE third-party/stb_image)
+target_sources(${PROJECT_NAME} PRIVATE third-party/stb_image/stb_image_impl.cpp)
+#set flag so we don't see the warnings from there 
+set_source_files_properties(third-party/stb_image/stb_image_impl.cpp PROPERTIES COMPILE_OPTIONS "-w")
 
 #---------LINKING LIBRARIES-----------------------------
 
@@ -47,4 +54,3 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 #---------SETTING FLAGS DEPENDING ON THE BUILD TYPE------
 
 target_compile_options(tiny_engine PRIVATE -O0 -g -pg -Wall -Wpedantic -Wextra -Wshadow -Wdouble-promotion)
-set_source_files_properties(stb_image_impl.cpp PROPERTIES COMPILE_OPTIONS "-w")
