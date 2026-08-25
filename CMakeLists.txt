@@ -6,7 +6,9 @@ set(SOURCE_FILES "src/")
 set(INCLUDE_FILES "include/")
 add_executable(${PROJECT_NAME} 
     ${SOURCE_FILES}shader.cpp
-	${SOURCE_FILES}main.cpp)
+    ${SOURCE_FILES}mesh.cpp
+	${SOURCE_FILES}main.cpp
+    ${SOURCE_FILES}model.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_FILES})
 
 #--------OpenGL-------------------------------
@@ -42,6 +44,19 @@ target_include_directories(${PROJECT_NAME} PRIVATE third-party/stb_image)
 target_sources(${PROJECT_NAME} PRIVATE third-party/stb_image/stb_image_impl.cpp)
 #set flag so we don't see the warnings from there 
 set_source_files_properties(third-party/stb_image/stb_image_impl.cpp PROPERTIES COMPILE_OPTIONS "-w")
+
+#--------ASSIMP (loading models)------------------------
+
+add_library(assimp SHARED IMPORTED)
+
+set_target_properties(assimp PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/third-party/assimp/libassimp.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/third-party/assimp/include"
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE assimp)
+
+#target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third-party/assimp/include)
 
 #---------LINKING LIBRARIES-----------------------------
 

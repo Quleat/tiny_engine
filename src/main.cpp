@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include <cmath>
+#include "model.h"
 
 #include "shader.h"
 #include <stb_image.h>
@@ -51,7 +52,6 @@ int main(){
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	//-----------SHADERS----------------------------------
-	Shader shader("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
 	//-----------DRAWING----------------------------------
 	float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -110,6 +110,8 @@ int main(){
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
+    
+
 	//VAO1
 	unsigned int VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
@@ -126,7 +128,14 @@ int main(){
 	glEnableVertexAttribArray(1);
 	glBindVertexArray(0);
 
-	shader.use();
+    //LightVAO
+    unsigned int lightVAO;
+    glGenVertexArrays(1, &lightVAO);
+    glBindVertexArray(lightVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
 
 	//----------LOADING TEXTURES----------
 	unsigned int texture; 
@@ -168,6 +177,8 @@ int main(){
 	glGenerateMipmap(GL_TEXTURE_2D);
 	stbi_image_free(data2);
 
+	Shader shader("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
+	shader.use();
 	glUniform1i(glGetUniformLocation(shader.ID, "texture1"), 0);
 	glUniform1i(glGetUniformLocation(shader.ID, "texture2"), 1);
 
@@ -178,9 +189,10 @@ int main(){
 	glBindVertexArray(VAO);
 	glEnable(GL_DEPTH_TEST);
 
-
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
+
+    Model backpack_model("/home/quleat/Projects/tiny_engine/models/backpack/backpack.obj");
 
 	while(!glfwWindowShouldClose(window)){
 		processInput(window);
@@ -197,7 +209,10 @@ int main(){
 		const int view_loc = glGetUniformLocation(shader.ID, "view");
 		glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
 
+        backpack_model.Draw(shader);
+
 		//Boxes
+/*
 		for(int i = 0; i < 10; i++){
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
@@ -207,7 +222,7 @@ int main(){
 			glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		}*/
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -247,7 +262,6 @@ void processInput(GLFWwindow *window){
 bool first_move=true;
 
 void mouse_callback(GLFWwindow*, double xpos, double ypos){
-print_debug("mouse callback");
   ypos *= -1;
 
   if(first_move){

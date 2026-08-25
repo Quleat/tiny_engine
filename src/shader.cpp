@@ -72,7 +72,7 @@ void Shader::setBool(const std::string &name, const bool &value) const
 {
 	const int location = glGetUniformLocation(ID, name.c_str());
 	if (location == -1){
-		std::cerr << "[ERROR]: Couldn't locate the uniform!\n";
+		std::cerr << "[ERROR]: Couldn't locate the uniform: " << name << "\n";
 	}
 	glUniform1i(location, (int)value);
 }
@@ -80,7 +80,7 @@ void Shader::setInt(const std::string &name, const int &value) const
 {
 	const int location = glGetUniformLocation(ID, name.c_str());
 	if (location == -1){
-		std::cerr << "[ERROR]: Couldn't locate the uniform!\n";
+		std::cerr << "[ERROR]: Couldn't locate the uniform: " << name << "\n";
 	}
 	glUniform1i(location, value);
 }
@@ -88,7 +88,7 @@ void Shader::setFloat(const std::string &name, const float &value) const
 {
 	const int location = glGetUniformLocation(ID, name.c_str());
 	if (location == -1){
-		std::cerr << "[ERROR]: Couldn't locate the uniform \'" << name << "\' !\n";
+		std::cerr << "[ERROR]: Couldn't locate the uniform: " << name << "\n";
 	}
 	glUniform1f(location, value);
 }
