@@ -19,7 +19,6 @@ public:
     std::vector<Vertex>  verticies;
     std::vector<unsigned int> indicies;
     std::vector<Texture> textures;
-    std::vector<Texture> textures_loaded;
 
     Mesh(
         std::vector<Vertex> verticies, 

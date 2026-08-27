@@ -137,50 +137,11 @@ int main(){
     glEnableVertexAttribArray(0);
 
 
-	//----------LOADING TEXTURES----------
-	unsigned int texture; 
-	glGenTextures(1, &texture);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	int width, height, nrChannels;
-
-	//Image 1
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char *data = stbi_load("images/container.jpg", &width, &height, &nrChannels, 0);
-	if(!data){
-		print_error("Failed to load the texture!");
-		return -10;
-	}
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	stbi_image_free(data);
-
-	//Image 2
-	unsigned int texture2;
-	glGenTextures(1, &texture2);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-	unsigned char *data2 = stbi_load("images/awesomeface.png", &width, &height, &nrChannels, 0);
-	if(!data){
-		print_error("Failed to load the texture!");
-		return -10;
-	}
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	stbi_image_free(data2);
-
+    //compiling shader
 	Shader shader("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
 	shader.use();
-	glUniform1i(glGetUniformLocation(shader.ID, "texture1"), 0);
-	glUniform1i(glGetUniformLocation(shader.ID, "texture2"), 1);
+    shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+    shader.setVec3("lightColor", 1.0, 1.0f, 1.0f);
 
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)600, 0.1f, 100.0f);
 	const int projection_loc = glGetUniformLocation(shader.ID, "projection");
