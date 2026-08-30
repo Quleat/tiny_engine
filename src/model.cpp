@@ -1,5 +1,6 @@
 #include "model.h"
 #include <stb_image.h>
+#include <iostream>
 
 Model::Model(const char* path){
  loadModel(path);
