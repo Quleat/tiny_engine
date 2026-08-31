@@ -173,12 +173,19 @@ int main(){
 	    glBindVertexArray(lightVAO);
         light_shader.use();
         light_shader.setMat4("view", view);
-        light_shader.setVec3("lightPos", light_pos);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	    glBindVertexArray(cubeVAO);
         simple_shader.use();
+        //Moving the cube
+        cube_model = glm::mat4(1.0f);
+        cube_pos.z = std::sin(glfwGetTime()) * 2;
+        cube_pos.x = std::sin(glfwGetTime() + 2) * 2;
+        cube_model = glm::translate(cube_model, cube_pos);
+        simple_shader.setMat4("model", cube_model);
         simple_shader.setMat4("view", view);
+        simple_shader.setVec3("lightPos", light_pos);
+        simple_shader.setVec3("viewPos", cameraPos);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
         //backpack_model.Draw(shader);
