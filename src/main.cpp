@@ -152,7 +152,10 @@ int main(){
     cube_model = glm::translate(cube_model, cube_pos);
     
     simple_shader.use();
-    simple_shader.setVec3("objectColor", {1.0f, 0.5f, 0.31f});
+    simple_shader.setVec3("material.ambient", {1.0f, 0.5f, 0.31f});
+    simple_shader.setVec3("material.diffuse", {1.0f, 0.5f, 0.31f});
+    simple_shader.setVec3("material.specular", {0.5f, 0.5f, 0.5f});
+    simple_shader.setFloat("material.shininess", 32.0f);
     simple_shader.setVec3("lightColor", {1.0, 1.0f, 1.0f});
     simple_shader.setMat4("model", cube_model);
     simple_shader.setMat4("projection", projection);
