@@ -12,7 +12,13 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_FILES})
 
 #--------OpenGL-------------------------------
-set(OPENGL_gl_LIBRARY "/usr/lib64/libOpenGL.so" CACHE FILEPATH "Path to OpenGL Library")
+
+if(NOT WIN32)
+	message("Compiling for linux")
+	set(OPENGL_gl_LIBRARY "/usr/lib64/libOpenGL.so" CACHE FILEPATH "Path to OpenGL Library")
+else()
+	message("Compiling for Windows")
+endif()
 find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 
 #--------GLFW (windows)---------------------------------
@@ -32,7 +38,7 @@ endif()
 
 add_library(glad STATIC third-party/glad/src/glad.c)
 target_include_directories(glad PUBLIC third-party/glad/include)
-target_link_libraries(glad PRIVATE OpenGL::OpenGL)
+target_link_libraries(glad PRIVATE OpenGL::GL)
 
 #--------GLM (math functions)---------------------------
 
@@ -47,25 +53,33 @@ set_source_files_properties(third-party/stb_image/stb_image_impl.cpp PROPERTIES 
 
 #--------ASSIMP (loading models)------------------------
 
-add_library(assimp SHARED IMPORTED)
-
-set_target_properties(assimp PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/third-party/assimp/libassimp.so"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/third-party/assimp/include"
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE assimp)
-
-#target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/third-party/assimp/include)
+set(ASSIMP_BUILD_TEST OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+add_subdirectory(
+	"${CMAKE_SOURCE_DIR}/third-party/assimp"
+	"${CMAKE_BINARY_DIR}/third-party/assimp"
+	)
+target_link_libraries(${PROJECT_NAME} PRIVATE assimp::assimp)
 
 #---------LINKING LIBRARIES-----------------------------
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	glfw
 	glad
-	OpenGL::OpenGL
+	OpenGL::GL
 )
 
 #---------SETTING FLAGS DEPENDING ON THE BUILD TYPE------
 
-target_compile_options(tiny_engine PRIVATE -O0 -g -pg -Wall -Wpedantic -Wextra -Wshadow -Wdouble-promotion)
+target_compile_options(tiny_engine PRIVATE -O0 -g -Wall -Wpedantic -Wextra -Wshadow -Wdouble-promotion)
+
+#----------COPYING SHADERS/TEXTURES/MODELS FOLDERS-------
+
+add_custom_command(
+    TARGET tiny_engine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/shaders"
+            "$<TARGET_FILE_DIR:tiny_engine>/shaders"
+)

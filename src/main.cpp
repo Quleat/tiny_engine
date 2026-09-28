@@ -156,7 +156,6 @@ int main(){
     simple_shader.setVec3("material.diffuse", {1.0f, 0.5f, 0.31f});
     simple_shader.setVec3("material.specular", {0.5f, 0.5f, 0.5f});
     simple_shader.setFloat("material.shininess", 32.0f);
-    simple_shader.setVec3("lightColor", {1.0, 1.0f, 1.0f});
     simple_shader.setMat4("model", cube_model);
     simple_shader.setMat4("projection", projection);
 
@@ -180,6 +179,7 @@ int main(){
 
 	    glBindVertexArray(cubeVAO);
         simple_shader.use();
+
         //Moving the cube
         cube_model = glm::mat4(1.0f);
         cube_pos.z = std::sin(glfwGetTime()) * 2;
@@ -187,11 +187,26 @@ int main(){
         cube_model = glm::translate(cube_model, cube_pos);
         simple_shader.setMat4("model", cube_model);
         simple_shader.setMat4("view", view);
-        simple_shader.setVec3("lightPos", light_pos);
+        simple_shader.setVec3("light.position", light_pos);
         simple_shader.setVec3("viewPos", cameraPos);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        //Changing the light color over time
+        glm::vec3 light_color;
+        light_color.x = sin(glfwGetTime() * 2.0f);
+        light_color.y = sin(glfwGetTime() * 0.7f);
+        light_color.z = sin(glfwGetTime() * 1.3f);
+
+        glm::vec3 diffuse_color = light_color * glm::vec3(0.5f);
+        glm::vec3 ambient_color = light_color * glm::vec3(0.2f);
+        glm::vec3 specular_color = light_color * glm::vec3(1.0f);
+        simple_shader.setVec3("light.ambient", ambient_color);
+        simple_shader.setVec3("light.diffuse", diffuse_color);
+        simple_shader.setVec3("light.specular", specular_color);
+        light_shader.setVec3("light_color", light_color);
         
         //backpack_model.Draw(shader);
+        
 		//Boxes
 		glfwSwapBuffers(window);
 		glfwPollEvents();
